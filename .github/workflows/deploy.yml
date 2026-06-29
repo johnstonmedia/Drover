@@ -31,8 +31,8 @@ jobs:
       - name: Build static site
         run: npm run build
         env:
-          # GitHub Pages serves the repo at /<repo-name>.
-          NEXT_PUBLIC_BASE_PATH: /drover
+          # GitHub Pages serves the repo at /<repo-name> (case-sensitive).
+          NEXT_PUBLIC_BASE_PATH: /Drover
           # Firebase web config is public — store as repo Variables (Settings →
           # Secrets and variables → Actions → Variables).
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ vars.NEXT_PUBLIC_FIREBASE_API_KEY }}
