@@ -29,17 +29,37 @@ export async function getUserProfile(uid: string): Promise<UserProfile | null> {
  * of the whole system is bootstrapped as a site_admin via an env allowlist;
  * everyone else starts as an unassigned member.
  */
-export async function ensureUserProfile(user: User): Promise<UserProfile> {
-  const existing = await getUserProfile(user.uid);
-  if (existing) return existing;
+// Emails that are always bootstrapped as site admins. Hardcoded so it does not
+// depend on a CI/repo variable; additional emails can be added via the
+// NEXT_PUBLIC_SITE_ADMIN_EMAILS env var (comma-separated).
+const DEFAULT_SITE_ADMIN_EMAILS = ['wjohnston.media@gmail.com'];
 
-  const siteAdminEmails = (process.env.NEXT_PUBLIC_SITE_ADMIN_EMAILS || '')
-    .split(',')
+export async function ensureUserProfile(user: User): Promise<UserProfile> {
+  const siteAdminEmails = [
+    ...DEFAULT_SITE_ADMIN_EMAILS,
+    ...(process.env.NEXT_PUBLIC_SITE_ADMIN_EMAILS || '').split(','),
+  ]
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
 
   const isBootstrapAdmin =
     !!user.email && siteAdminEmails.includes(user.email.toLowerCase());
+
+  const existing = await getUserProfile(user.uid);
+  if (existing) {
+    // Promote an allowlisted admin whose profile was created before they were
+    // added. Best-effort: if security rules block the self-update, set the
+    // role manually in the Firebase console instead.
+    if (isBootstrapAdmin && existing.role !== 'site_admin') {
+      try {
+        await updateDoc(doc(db, 'users', user.uid), { role: 'site_admin' });
+        return { ...existing, role: 'site_admin' };
+      } catch {
+        /* rules may block self-promotion; ignore */
+      }
+    }
+    return existing;
+  }
 
   const profile: UserProfile = {
     uid: user.uid,

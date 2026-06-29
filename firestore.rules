@@ -37,7 +37,10 @@ service cloud.firestore {
             && myRole() == 'company_admin' && request.resource.data.role != 'site_admin')
         || (request.auth.uid == uid
             && request.resource.data.role == resource.data.role
-            && request.resource.data.companyId == resource.data.companyId);
+            && request.resource.data.companyId == resource.data.companyId)
+        // Bootstrap: the founding owner may self-promote to site_admin.
+        || (request.auth.uid == uid
+            && request.auth.token.email == 'wjohnston.media@gmail.com');
 
       allow delete: if isSiteAdmin();
     }
