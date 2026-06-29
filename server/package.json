@@ -1,0 +1,11 @@
+{
+  "name": "drover-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Drover serverless API (Vercel) — Groq AI advisor + MLA/AuctionsPlus price fetcher. Holds the secret GROQ_API_KEY.",
+  "type": "module",
+  "devDependencies": {
+    "@vercel/node": "^3.2.0",
+    "typescript": "^5.5.3"
+  }
+}

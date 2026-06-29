@@ -1,0 +1,60 @@
+rules_version = '2';
+
+// Drover Firestore security rules. These enforce access server-side (the UI
+// rbac helpers are convenience only). Paste these into the Firebase console →
+// Firestore → Rules, and Publish.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function myProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+    function myRole() {
+      return myProfile().role;
+    }
+    function isSiteAdmin() {
+      return isSignedIn() && myRole() == 'site_admin';
+    }
+    function myCompany() {
+      return isSignedIn() ? myProfile().companyId : null;
+    }
+
+    // Users: a user can read/update their own profile (but not escalate their
+    // own role). Company admins can manage users in their company. Site admins
+    // can do anything.
+    match /users/{uid} {
+      allow read: if isSignedIn() &&
+        (request.auth.uid == uid || isSiteAdmin() ||
+         (resource.data.companyId == myCompany() && myRole() == 'company_admin'));
+
+      allow create: if isSignedIn() && request.auth.uid == uid;
+
+      allow update: if isSiteAdmin()
+        || (isSignedIn() && resource.data.companyId == myCompany()
+            && myRole() == 'company_admin' && request.resource.data.role != 'site_admin')
+        || (request.auth.uid == uid
+            && request.resource.data.role == resource.data.role
+            && request.resource.data.companyId == resource.data.companyId);
+
+      allow delete: if isSiteAdmin();
+    }
+
+    // Companies: members read their own company; admins manage.
+    match /companies/{companyId} {
+      allow read: if isSignedIn() && (companyId == myCompany() || isSiteAdmin());
+      allow create: if isSignedIn();
+      allow update, delete: if isSiteAdmin() ||
+        (myRole() == 'company_admin' && companyId == myCompany());
+    }
+
+    // Mobs: scoped to the owning company.
+    match /mobs/{mobId} {
+      allow read: if isSignedIn() && (resource.data.companyId == myCompany() || isSiteAdmin());
+      allow create: if isSignedIn() && request.resource.data.companyId == myCompany();
+      allow update, delete: if isSiteAdmin() || (isSignedIn() && resource.data.companyId == myCompany());
+    }
+  }
+}
