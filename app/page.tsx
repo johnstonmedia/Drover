@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import ScrollHero from './components/ScrollHero';
+import DashboardTour from '@/components/DashboardTour';
 import Reveal from '@/components/Reveal';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -37,8 +38,11 @@ export default function HomePage() {
     <main className="relative">
       <Navbar />
 
-      {/* Cinematic scroll-scrub hero (video scrubs as you scroll) */}
+      {/* Cinematic scroll-scrub hero (frames scrub as you scroll) */}
       <ScrollHero />
+
+      {/* Scroll-driven product tour — cursor walks the workflow */}
+      <DashboardTour />
 
       {/* Pitch */}
       <section className="mx-auto max-w-7xl px-6 py-24">
