@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import ScrollHero from './components/ScrollHero';
-import DashboardPreview from '@/components/DashboardPreview';
 import Reveal from '@/components/Reveal';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -81,31 +80,6 @@ export default function HomePage() {
               </Reveal>
             ))}
           </div>
-        </div>
-      </section>
-
-      {/* See it in action */}
-      <section className="bg-drover-bone py-24">
-        <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 md:grid-cols-2">
-          <Reveal>
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-widest text-drover-grass">
-                See it in action
-              </p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">
-                One click from numbers to a verdict.
-              </h2>
-              <p className="mt-5 max-w-md text-drover-bark/80">
-                Lock in a mob, watch the margin build through each stage, then ask
-                the advisor for a plain-English read — grounded only in your real
-                figures.
-              </p>
-              <Link href="/login" className="btn-primary mt-7">
-                Try it now
-              </Link>
-            </div>
-          </Reveal>
-          <DashboardPreview />
         </div>
       </section>
 
