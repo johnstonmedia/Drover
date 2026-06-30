@@ -2,8 +2,12 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { applyCors } from './_lib.js';
 
 // Groq is OpenAI-compatible. The model is configurable via GROQ_MODEL.
+// NOTE: llama-3.3-70b-versatile was deprecated for free/dev tiers on
+// 2026-06-17, so we default to a current production model. If a model is
+// retired, requests fall through to the next FALLBACK_MODELS entry.
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const DEFAULT_MODEL = 'llama-3.3-70b-versatile';
+const DEFAULT_MODEL = 'openai/gpt-oss-120b';
+const FALLBACK_MODELS = ['openai/gpt-oss-20b', 'llama-3.1-8b-instant'];
 
 const SYSTEM_PROMPT = `You are Drover's livestock trading advisor for the Australian beef supply chain.
 You write a SHORT (120-180 word) plain-English evaluation for a producer.
@@ -43,36 +47,48 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     '\nWrite the brief now.',
   ].join('');
 
+  // Try the configured model, then fall back if a model has been retired.
+  const models = [process.env.GROQ_MODEL || DEFAULT_MODEL, ...FALLBACK_MODELS];
+  let lastError = '';
+
   try {
-    const model = process.env.GROQ_MODEL || DEFAULT_MODEL;
-    const groqRes = await fetch(GROQ_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model,
-        temperature: 0.3,
-        max_tokens: 400,
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: userMessage },
-        ],
-      }),
-    });
+    for (const model of models) {
+      const groqRes = await fetch(GROQ_URL, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model,
+          temperature: 0.3,
+          max_tokens: 400,
+          messages: [
+            { role: 'system', content: SYSTEM_PROMPT },
+            { role: 'user', content: userMessage },
+          ],
+        }),
+      });
 
-    if (!groqRes.ok) {
-      const text = await groqRes.text();
-      res.status(502).json({ error: `Groq error ${groqRes.status}: ${text}` });
-      return;
+      if (groqRes.ok) {
+        const data = (await groqRes.json()) as {
+          choices?: { message?: { content?: string } }[];
+        };
+        const brief = data.choices?.[0]?.message?.content?.trim();
+        if (brief) {
+          res.status(200).json({ brief, model });
+          return;
+        }
+        lastError = `Empty response from ${model}`;
+        continue;
+      }
+
+      lastError = `Groq error ${groqRes.status} on ${model}: ${await groqRes.text()}`;
+      // 400/404 usually means the model id is wrong/retired — try the next one.
+      // Other errors (401 auth, 429 rate limit) won't be fixed by another model.
+      if (groqRes.status !== 400 && groqRes.status !== 404) break;
     }
-
-    const data = (await groqRes.json()) as {
-      choices?: { message?: { content?: string } }[];
-    };
-    const brief = data.choices?.[0]?.message?.content?.trim() || 'No response generated.';
-    res.status(200).json({ brief, model });
+    res.status(502).json({ error: lastError || 'Advisor failed.' });
   } catch (e) {
     res.status(500).json({ error: e instanceof Error ? e.message : 'Unknown error' });
   }
