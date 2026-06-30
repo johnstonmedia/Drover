@@ -5,6 +5,7 @@ import { fetchLivePrices } from '@/lib/api';
 import { PLACEHOLDER_PRICES } from '@/lib/sampleData';
 import { stageLabel } from '@/lib/supplyChain';
 import { exportRowsToExcel } from '@/lib/excel';
+import Trend from '@/components/Trend';
 import type { PriceRecord } from '@/lib/types';
 
 const BASIS_LABEL: Record<string, string> = {
@@ -42,6 +43,8 @@ export default function PricesPage() {
         Stage: stageLabel(p.stage),
         Category: p.category,
         Value: p.value,
+        Change: p.change ?? '',
+        'Change %': p.changePct ?? '',
         Basis: BASIS_LABEL[p.basis] ?? p.basis,
         Region: p.region ?? '',
         'As of': p.asOf,
@@ -82,6 +85,7 @@ export default function PricesPage() {
               <th className="px-5 py-3">Stage</th>
               <th className="px-5 py-3">Category</th>
               <th className="px-5 py-3 text-right">Value</th>
+              <th className="px-5 py-3 text-right">Change</th>
               <th className="px-5 py-3">Basis</th>
               <th className="px-5 py-3">Region</th>
               <th className="px-5 py-3">As of</th>
@@ -95,6 +99,9 @@ export default function PricesPage() {
                 <td className="px-5 py-3">{p.category}</td>
                 <td className="px-5 py-3 text-right tabular-nums">
                   {p.value ? p.value.toLocaleString('en-AU') : '—'}
+                </td>
+                <td className="px-5 py-3 text-right">
+                  <Trend change={p.change} changePct={p.changePct} />
                 </td>
                 <td className="px-5 py-3">{BASIS_LABEL[p.basis] ?? p.basis}</td>
                 <td className="px-5 py-3">{p.region ?? '—'}</td>

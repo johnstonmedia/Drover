@@ -138,7 +138,16 @@ export default function MarginsPage() {
                     <input className="input !py-1 w-24" type="number" value={leg.costs.other ?? 0}
                       onChange={(e) => updateCost(i, 'other', +e.target.value)} />
                   </td>
-                  <td className="px-4 py-2 text-right font-medium tabular-nums">
+                  <td
+                    className={`px-4 py-2 text-right font-medium tabular-nums ${
+                      (r?.marginPerHead ?? 0) > 0
+                        ? 'text-green-600'
+                        : (r?.marginPerHead ?? 0) < 0
+                          ? 'text-red-600'
+                          : ''
+                    }`}
+                  >
+                    {(r?.marginPerHead ?? 0) > 0 ? '▲' : (r?.marginPerHead ?? 0) < 0 ? '▼' : ''}{' '}
                     {AUD2.format(r?.marginPerHead ?? 0)}
                   </td>
                 </tr>
@@ -153,6 +162,11 @@ export default function MarginsPage() {
         <Stat label="Margin / head" value={AUD2.format(evaln.totalMarginPerHead)} />
         <Stat label={`Total margin (${working.head} head)`} value={AUD.format(evaln.totalMargin)} />
         <Stat label="Return on cost" value={`${evaln.returnOnCostPct}%`} />
+      </div>
+
+      {/* Computed summary (factual — derived only from the figures above) */}
+      <div className="card mt-4 border-l-4 border-drover-grass">
+        <p className="text-sm leading-relaxed text-drover-bark/90">{marginSummary(evaln)}</p>
       </div>
 
       {/* Route comparison */}
@@ -240,4 +254,26 @@ function Stat({ label, value }: { label: string; value: string }) {
       <p className="mt-2 text-2xl font-semibold tracking-tight tabular-nums">{value}</p>
     </div>
   );
+}
+
+/** A factual one-liner derived purely from the evaluation — no AI, no guessing. */
+function marginSummary(e: ReturnType<typeof evaluateRoute>): string {
+  const realised = e.legs.filter((l) => l.outValuePerHead !== l.inValuePerHead || l.costsPerHead > 0);
+  if (realised.length === 0) {
+    return 'Enter sale prices and costs for each stage to see a margin summary.';
+  }
+  const best = realised.reduce((a, b) => (b.marginPerHead > a.marginPerHead ? b : a));
+  const worst = realised.reduce((a, b) => (b.marginPerHead < a.marginPerHead ? b : a));
+  const verdict =
+    e.totalMarginPerHead > 0
+      ? `profitable at ${AUD2.format(e.totalMarginPerHead)}/head`
+      : e.totalMarginPerHead < 0
+        ? `running at a loss of ${AUD2.format(Math.abs(e.totalMarginPerHead))}/head`
+        : 'breaking even';
+  const bestPart = `Strongest stage: ${stageLabel(best.stage)} (${AUD2.format(best.marginPerHead)}/head)`;
+  const worstPart =
+    best.stage !== worst.stage
+      ? `; weakest: ${stageLabel(worst.stage)} (${AUD2.format(worst.marginPerHead)}/head)`
+      : '';
+  return `This route is ${verdict} across ${e.head} head (${AUD.format(e.totalMargin)} total). ${bestPart}${worstPart}.`;
 }

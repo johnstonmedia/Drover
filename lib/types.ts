@@ -72,6 +72,10 @@ export interface PriceRecord {
   source: PriceSource;
   region?: AustralianState | 'National';
   note?: string;
+  /** Movement vs the previous observation (same units as value). Optional —
+   * only present when the source provides history. Never fabricated. */
+  change?: number;
+  changePct?: number;
 }
 
 export type PriceSource = 'MLA' | 'AuctionsPlus' | 'manual' | 'estimate';

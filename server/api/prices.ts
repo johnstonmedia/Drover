@@ -21,6 +21,9 @@ interface PriceRecord {
   source: 'MLA' | 'AuctionsPlus' | 'manual' | 'estimate';
   region?: string;
   note?: string;
+  // Movement vs previous observation; only set when the source supplies it.
+  change?: number;
+  changePct?: number;
 }
 
 async function fetchMla(): Promise<{ prices: PriceRecord[]; warnings: string[] }> {

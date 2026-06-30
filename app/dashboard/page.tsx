@@ -5,6 +5,8 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { listMobs } from '@/lib/firestore';
 import { evaluateRoute, AUD } from '@/lib/supplyChain';
+import { can } from '@/lib/rbac';
+import { getAdvisorBrief } from '@/lib/api';
 import type { LivestockMob } from '@/lib/types';
 
 export default function DashboardOverview() {
@@ -58,6 +60,52 @@ export default function DashboardOverview() {
         <Link href="/dashboard/prices" className="btn-ghost">View prices</Link>
         <Link href="/dashboard/margins" className="btn-ghost">Evaluate margins</Link>
       </div>
+
+      {can(profile, 'use_advisor') && mobs.length > 0 && (
+        <PortfolioSummary mobs={mobs} />
+      )}
+    </div>
+  );
+}
+
+function PortfolioSummary({ mobs }: { mobs: LivestockMob[] }) {
+  const [brief, setBrief] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+
+  async function ask() {
+    setBusy(true);
+    setErr(null);
+    try {
+      const lines = mobs.map((m) => {
+        const e = evaluateRoute(m);
+        return `${m.name}: ${m.head} head from ${m.entryStage}, projected margin ${e.totalMarginPerHead}/head (${e.totalMargin} total, ${e.returnOnCostPct}% on cost).`;
+      });
+      const totalHead = mobs.reduce((n, m) => n + m.head, 0);
+      const totalMargin = mobs.reduce((n, m) => n + evaluateRoute(m).totalMargin, 0);
+      const context = `Portfolio of ${mobs.length} mobs, ${totalHead} head, total projected margin ${totalMargin} AUD. ${lines.join(' ')} Give a brief portfolio summary: overall position, which mob looks strongest/weakest, and one consideration. Use only these figures.`;
+      const res = await getAdvisorBrief({ context });
+      setBrief(res.brief);
+    } catch {
+      setErr('AI summary unavailable. Make sure the API URL (NEXT_PUBLIC_API_BASE_URL) is set to your Vercel deployment.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="card mt-8">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-medium">AI summary</h2>
+        <button className="btn-primary" onClick={ask} disabled={busy}>
+          {busy ? 'Thinking…' : 'Summarise my portfolio'}
+        </button>
+      </div>
+      <p className="mt-1 text-sm text-drover-sage">
+        A short written read on your whole herd, grounded only in your figures.
+      </p>
+      {err && <p className="mt-4 text-sm text-amber-700">{err}</p>}
+      {brief && <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed">{brief}</p>}
     </div>
   );
 }
