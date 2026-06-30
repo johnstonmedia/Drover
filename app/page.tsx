@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import ScrollHero from './components/ScrollHero';
+import AnimatedHero from '@/components/AnimatedHero';
+import Reveal from '@/components/Reveal';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { STAGES } from '@/lib/supplyChain';
@@ -36,8 +37,8 @@ export default function HomePage() {
     <main className="relative">
       <Navbar />
 
-      {/* STEP 6: ScrollHero is the first section */}
-      <ScrollHero />
+      {/* Animated, code-driven hero (no video file required) */}
+      <AnimatedHero />
 
       {/* Pitch */}
       <section className="mx-auto max-w-7xl px-6 py-24">
@@ -70,11 +71,13 @@ export default function HomePage() {
           </h2>
           <div className="mt-12 grid gap-6 md:grid-cols-4">
             {STAGES.map((s, i) => (
-              <div key={s.id} className="rounded-2xl border border-white/10 bg-white/5 p-6">
-                <div className="text-sm font-semibold text-drover-sage">0{i + 1}</div>
-                <h3 className="mt-2 text-xl font-medium">{s.label}</h3>
-                <p className="mt-3 text-sm text-drover-bone/70">{s.description}</p>
-              </div>
+              <Reveal key={s.id} delay={i * 0.08}>
+                <div className="h-full rounded-2xl border border-white/10 bg-white/5 p-6 transition-all duration-300 hover:-translate-y-1 hover:border-drover-fern/40 hover:bg-white/10">
+                  <div className="text-sm font-semibold text-drover-gold">0{i + 1}</div>
+                  <h3 className="mt-2 text-xl font-medium">{s.label}</h3>
+                  <p className="mt-3 text-sm text-drover-bone/70">{s.description}</p>
+                </div>
+              </Reveal>
             ))}
           </div>
         </div>
@@ -83,11 +86,13 @@ export default function HomePage() {
       {/* Features */}
       <section className="mx-auto max-w-7xl px-6 py-24">
         <div className="grid gap-8 md:grid-cols-3">
-          {FEATURES.map((f) => (
-            <div key={f.title} className="card">
-              <h3 className="text-lg font-medium">{f.title}</h3>
-              <p className="mt-3 text-sm text-drover-bark/70">{f.body}</p>
-            </div>
+          {FEATURES.map((f, i) => (
+            <Reveal key={f.title} delay={(i % 3) * 0.08}>
+              <div className="card-interactive h-full">
+                <h3 className="text-lg font-medium">{f.title}</h3>
+                <p className="mt-3 text-sm text-drover-bark/70">{f.body}</p>
+              </div>
+            </Reveal>
           ))}
         </div>
       </section>

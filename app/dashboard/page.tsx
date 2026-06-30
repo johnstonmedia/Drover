@@ -50,9 +50,9 @@ export default function DashboardOverview() {
       )}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-3">
-        <Stat label="Mobs tracked" value={loading ? '…' : String(mobs.length)} />
-        <Stat label="Head under management" value={loading ? '…' : totalHead.toLocaleString('en-AU')} />
-        <Stat label="Projected total margin" value={loading ? '…' : AUD.format(totalMargin)} />
+        <Stat label="Mobs tracked" value={loading ? '…' : String(mobs.length)} delay={0} />
+        <Stat label="Head under management" value={loading ? '…' : totalHead.toLocaleString('en-AU')} delay={80} />
+        <Stat label="Projected total margin" value={loading ? '…' : AUD.format(totalMargin)} delay={160} />
       </div>
 
       <div className="mt-8 flex flex-wrap gap-3">
@@ -110,9 +110,9 @@ function PortfolioSummary({ mobs }: { mobs: LivestockMob[] }) {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value, delay = 0 }: { label: string; value: string; delay?: number }) {
   return (
-    <div className="card">
+    <div className="card-interactive animate-pop-in" style={{ animationDelay: `${delay}ms` }}>
       <p className="text-xs uppercase tracking-wide text-drover-sage">{label}</p>
       <p className="mt-2 text-3xl font-semibold tracking-tight">{value}</p>
     </div>

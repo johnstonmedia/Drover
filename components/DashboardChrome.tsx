@@ -3,8 +3,11 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/lib/auth-context';
 import { isSiteAdmin, isCompanyAdmin } from '@/lib/rbac';
+import Logo from '@/components/Logo';
+import LoadingScreen from '@/components/LoadingScreen';
 
 const NAV = [
   { href: '/dashboard', label: 'Overview' },
@@ -24,33 +27,37 @@ export default function DashboardChrome({ children }: { children: React.ReactNod
   }, [user, loading, router]);
 
   if (loading || !user) {
-    return (
-      <div className="flex min-h-screen items-center justify-center text-drover-sage">
-        Loading…
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (
     <div className="flex min-h-screen bg-drover-bone">
       {/* Sidebar */}
       <aside className="hidden w-64 shrink-0 flex-col border-r border-drover-dust/60 bg-white p-6 md:flex">
-        <Link href="/" className="text-xl font-semibold tracking-tight">
-          Drover
+        <Link href="/" className="transition-transform hover:scale-[1.03]">
+          <Logo size={28} loop={false} />
         </Link>
         <nav className="mt-8 flex flex-1 flex-col gap-1">
-          {NAV.map((item) => {
+          {NAV.map((item, i) => {
             const active = pathname === item.href;
             return (
-              <Link
+              <motion.div
                 key={item.href}
-                href={item.href}
-                className={`rounded-xl px-3 py-2 text-sm font-medium transition ${
-                  active ? 'bg-drover-paddock text-drover-bone' : 'text-drover-bark hover:bg-drover-dust/40'
-                }`}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.05 * i, duration: 0.3 }}
               >
-                {item.label}
-              </Link>
+                <Link
+                  href={item.href}
+                  className={`block rounded-xl px-3 py-2 text-sm font-medium transition-all duration-200 ${
+                    active
+                      ? 'bg-drover-paddock text-drover-bone shadow-sm'
+                      : 'text-drover-bark hover:bg-drover-sand hover:translate-x-0.5'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              </motion.div>
             );
           })}
           {isCompanyAdmin(profile) && (
@@ -71,7 +78,15 @@ export default function DashboardChrome({ children }: { children: React.ReactNod
         </div>
       </aside>
 
-      <main className="flex-1 px-6 py-8 md:px-10">{children}</main>
+      <motion.main
+        key={pathname}
+        className="flex-1 px-6 py-8 md:px-10"
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+      >
+        {children}
+      </motion.main>
     </div>
   );
 }

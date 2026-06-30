@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { useAuth } from '@/lib/auth-context';
+import Logo from '@/components/Logo';
 import type { ConfirmationResult } from 'firebase/auth';
 
 type Mode = 'email' | 'phone';
@@ -48,9 +50,14 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-drover-bark px-6 py-12">
-      <div className="w-full max-w-md">
-        <Link href="/" className="mb-8 block text-center text-2xl font-semibold text-drover-bone">
-          Drover
+      <motion.div
+        className="w-full max-w-md"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <Link href="/" className="mb-8 flex justify-center">
+          <Logo size={40} wordmarkClassName="text-drover-bone text-2xl" />
         </Link>
 
         <div className="card">
@@ -200,7 +207,7 @@ export default function LoginPage() {
           </Link>
           .
         </p>
-      </div>
+      </motion.div>
     </main>
   );
 }

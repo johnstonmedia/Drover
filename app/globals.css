@@ -24,22 +24,50 @@ body {
 }
 
 @layer components {
+  /* Every button presses in on click and lifts on hover — tactile "impact". */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition;
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium
+           transition-all duration-200 ease-out
+           active:scale-[0.96] active:duration-75
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-drover-gold/50;
   }
   .btn-primary {
-    @apply btn bg-drover-paddock text-drover-bone hover:bg-drover-grass;
+    @apply btn bg-drover-paddock text-drover-bone shadow-sm
+           hover:bg-drover-grass hover:shadow-lg hover:shadow-drover-grass/20 hover:-translate-y-0.5;
   }
   .btn-ghost {
-    @apply btn border border-drover-dust text-drover-ink hover:bg-drover-dust/40;
+    @apply btn border border-drover-dust text-drover-ink
+           hover:bg-drover-sand hover:border-drover-sage hover:-translate-y-0.5;
+  }
+  .btn-gold {
+    @apply btn bg-drover-gold text-drover-ink shadow-sm
+           hover:brightness-105 hover:shadow-lg hover:shadow-drover-gold/30 hover:-translate-y-0.5;
   }
   .card {
-    @apply rounded-2xl border border-drover-dust/70 bg-white p-6 shadow-sm;
+    @apply rounded-2xl border border-drover-dust/70 bg-white p-6 shadow-sm
+           transition-all duration-300 ease-out;
+  }
+  /* Cards that respond to hover (e.g. clickable tiles). */
+  .card-interactive {
+    @apply card hover:-translate-y-1 hover:shadow-xl hover:shadow-drover-paddock/10 hover:border-drover-fern/40 cursor-pointer;
   }
   .input {
-    @apply w-full rounded-xl border border-drover-dust bg-white px-4 py-2.5 text-sm outline-none focus:border-drover-grass focus:ring-2 focus:ring-drover-grass/20;
+    @apply w-full rounded-xl border border-drover-dust bg-white px-4 py-2.5 text-sm outline-none
+           transition-all duration-200
+           focus:border-drover-grass focus:ring-2 focus:ring-drover-grass/20;
   }
   .label {
     @apply mb-1 block text-xs font-medium uppercase tracking-wide text-drover-sage;
+  }
+}
+
+/* Respect users who prefer reduced motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
   }
 }

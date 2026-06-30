@@ -2,14 +2,15 @@
 
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth-context';
+import Logo from '@/components/Logo';
 
 export default function Navbar() {
   const { user, loading } = useAuth();
   return (
     <header className="absolute inset-x-0 top-0 z-50">
       <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
-        <Link href="/" className="text-xl font-semibold tracking-tight text-drover-bone">
-          Drover
+        <Link href="/" className="transition-transform hover:scale-[1.03]">
+          <Logo size={30} loop={false} wordmarkClassName="text-drover-bone" />
         </Link>
         <div className="flex items-center gap-3">
           {!loading && user ? (
